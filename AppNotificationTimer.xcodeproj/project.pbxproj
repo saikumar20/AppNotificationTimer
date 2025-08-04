@@ -14,6 +14,7 @@
 		52952F012E18FB130089AEC3 /* AppNotificationTimer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 52952EFF2E18FB130089AEC3 /* AppNotificationTimer.xcdatamodeld */; };
 		52952F032E18FB180089AEC3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 52952F022E18FB180089AEC3 /* Assets.xcassets */; };
 		52952F062E18FB180089AEC3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 52952F042E18FB180089AEC3 /* LaunchScreen.storyboard */; };
+		52952F0F2E19A6BC0089AEC3 /* notificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52952F0E2E19A6BC0089AEC3 /* notificationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		52952F022E18FB180089AEC3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		52952F052E18FB180089AEC3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		52952F072E18FB180089AEC3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		52952F0E2E19A6BC0089AEC3 /* notificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = notificationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 				52952EF62E18FB130089AEC3 /* AppDelegate.swift */,
 				52952EF82E18FB130089AEC3 /* SceneDelegate.swift */,
 				52952EFA2E18FB130089AEC3 /* ViewController.swift */,
+				52952F0E2E19A6BC0089AEC3 /* notificationManager.swift */,
 				52952EFC2E18FB130089AEC3 /* Main.storyboard */,
 				52952F022E18FB180089AEC3 /* Assets.xcassets */,
 				52952F042E18FB180089AEC3 /* LaunchScreen.storyboard */,
@@ -144,6 +147,7 @@
 				52952EFB2E18FB130089AEC3 /* ViewController.swift in Sources */,
 				52952EF72E18FB130089AEC3 /* AppDelegate.swift in Sources */,
 				52952F012E18FB130089AEC3 /* AppNotificationTimer.xcdatamodeld in Sources */,
+				52952F0F2E19A6BC0089AEC3 /* notificationManager.swift in Sources */,
 				52952EF92E18FB130089AEC3 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
