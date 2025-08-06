@@ -1,5 +1,10 @@
 A simple and elegant local notification scheduler built with Swift and UIKit. This app allows users to schedule custom reminders with a title, description, and specific date/time using iOS's local notification system.
 
+## 📸 Demo :
+
+https://www.youtube.com/shorts/KMfGI1JcpbA
+
+
 🛠 Features
 📥 Schedule custom notifications with title & description
 
