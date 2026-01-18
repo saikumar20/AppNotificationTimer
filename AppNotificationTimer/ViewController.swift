@@ -6,13 +6,13 @@ extension NSNotification.Name {
 
 class MainViewController: UIViewController {
     
-    // MARK: - Properties
+
     private let notificationManager = NotificationManager.shared
     private var notificationId = UUID().uuidString
     private var selectedDate: Date?
     private var shouldOpenSettings = false
     
-    // MARK: - UI Components
+
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -111,7 +111,7 @@ class MainViewController: UIViewController {
         return button
     }()
     
-    // MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -126,7 +126,7 @@ class MainViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // MARK: - Setup Methods
+ 
     private func setupUI() {
         view.backgroundColor = .systemBackground
         
@@ -171,48 +171,48 @@ class MainViewController: UIViewController {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // ScrollView
+      
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
-            // Content View
+      
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            // Title Label
+      
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            // Title TextView
+
             titleTextView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             titleTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             titleTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             titleTextView.heightAnchor.constraint(equalToConstant: 80),
             
-            // Description Label
+    
             descriptionLabel.topAnchor.constraint(equalTo: titleTextView.bottomAnchor, constant: 20),
             descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            // Description TextView
+   
             descriptionTextView.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 10),
             descriptionTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             descriptionTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             descriptionTextView.heightAnchor.constraint(equalToConstant: 120),
             
-            // Date Stack
+ 
             dateStackView.topAnchor.constraint(equalTo: descriptionTextView.bottomAnchor, constant: 20),
             dateStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             dateStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             dateStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             
-            // Register Button
+
             registerButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             registerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             registerButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -234,7 +234,7 @@ class MainViewController: UIViewController {
         )
     }
     
-    // MARK: - Actions
+  
     @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
         selectedDate = sender.date
     }
@@ -257,7 +257,7 @@ class MainViewController: UIViewController {
         scheduleNotification()
     }
     
-    // MARK: - Permission Management
+  
     @objc private func checkPermission() {
         notificationManager.checkPermissionStatus { [weak self] status in
             DispatchQueue.main.async {
@@ -304,9 +304,9 @@ class MainViewController: UIViewController {
         UIApplication.shared.open(settingsURL)
     }
     
-    // MARK: - Notification Scheduling
+   
     private func scheduleNotification() {
-        // Validate inputs
+       
         guard let title = titleTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines),
               !title.isEmpty else {
             showAlert(title: "Missing Title", message: "Please enter a notification title.")
@@ -321,19 +321,18 @@ class MainViewController: UIViewController {
         
         let notificationDate = selectedDate ?? datePicker.date
         
-        // Validate date is in future
         guard notificationDate > Date() else {
             showAlert(title: "Invalid Date", message: "Please select a future date and time.")
             return
         }
         
-        // Format date for display
+       
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
         dateFormatter.timeStyle = .short
         let formattedDate = dateFormatter.string(from: notificationDate)
         
-        // Show confirmation alert
+     
         let alert = UIAlertController(
             title: "Schedule Notification",
             message: "You will receive a notification on \(formattedDate)",
@@ -396,7 +395,7 @@ class MainViewController: UIViewController {
         view.endEditing(true)
     }
     
-    // MARK: - Helper Methods
+   
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(
             title: title,

@@ -17,14 +17,14 @@ class NotificationManager {
     
     private init() {}
     
-    // MARK: - Request Permission
+    
     func requestNotificationPermission(completion: @escaping (Bool, Error?) -> Void) {
         notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             completion(granted, error)
         }
     }
     
-    // MARK: - Schedule Notification
+  
     func scheduleNotification(
         id: String,
         title: String,
@@ -32,7 +32,7 @@ class NotificationManager {
         date: Date,
         completion: @escaping (Error?) -> Void
     ) {
-        // Validate date is in the future
+     
         guard date > Date() else {
             let error = NSError(
                 domain: "NotificationManager",
@@ -43,30 +43,30 @@ class NotificationManager {
             return
         }
         
-        // Create date components
+       
         let components: Set<Calendar.Component> = [.minute, .hour, .day, .month, .year]
         let dateComponents = Calendar.current.dateComponents(components, from: date)
         
-        // Create trigger
+       
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         
-        // Create content
+      
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
         content.badge = 1
         
-        // Create request
+       
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         
-        // Add notification
+      
         notificationCenter.add(request) { error in
             completion(error)
         }
     }
     
-    // MARK: - Check Permission Status
+  
     func checkPermissionStatus(completion: @escaping (NotificationAccessStatus) -> Void) {
         notificationCenter.getNotificationSettings { settings in
             switch settings.authorizationStatus {
@@ -86,19 +86,19 @@ class NotificationManager {
         }
     }
     
-    // MARK: - Get Pending Notifications
+ 
     func getPendingNotifications(completion: @escaping ([UNNotificationRequest]) -> Void) {
         notificationCenter.getPendingNotificationRequests { requests in
             completion(requests)
         }
     }
     
-    // MARK: - Cancel Notification
+  
     func cancelNotification(withId id: String) {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
     }
     
-    // MARK: - Cancel All Notifications
+ 
     func cancelAllNotifications() {
         notificationCenter.removeAllPendingNotificationRequests()
     }
