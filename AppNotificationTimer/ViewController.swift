@@ -1,356 +1,409 @@
-
-
 import UIKit
 
 extension NSNotification.Name {
     static let notificationBackCheck = NSNotification.Name("notificationBackCheck")
 }
 
-
 class MainViewController: UIViewController {
     
+    // MARK: - Properties
+    private let notificationManager = NotificationManager.shared
+    private var notificationId = UUID().uuidString
+    private var selectedDate: Date?
+    private var shouldOpenSettings = false
     
-    
-    let titleheader : UILabel = {
-        let lable = UILabel()
-        lable.text = "Title"
-        lable.font = .systemFont(ofSize: 19, weight: .medium)
-        lable.translatesAutoresizingMaskIntoConstraints = false
-        return lable
+    // MARK: - UI Components
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = true
+        return scrollView
     }()
     
-    let descriptionheader : UILabel = {
-        let lable = UILabel()
-        lable.text = "Description"
-        lable.font = .systemFont(ofSize: 19, weight: .medium)
-        lable.translatesAutoresizingMaskIntoConstraints = false
-        return lable
-    }()
-    
-    let titlefield : UITextView = {
-        let view = UITextView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.text = ""
-        view.textAlignment = .left
-        view.layer.cornerRadius = 10
-        view.textColor = .black
-        view.backgroundColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0.2)
-        return view
-    }()
-    
-    let descriptionfield : UITextView = {
-        let view = UITextView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.text = ""
-        view.textAlignment = .left
-        view.layer.cornerRadius = 10
-        view.textColor = .black
-        view.backgroundColor = UIColor(red: 255, green: 0, blue: 0, alpha: 0.2)
-        return view
-    }()
-
-   private lazy var containerView : UIView = {
+    private let contentView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    var registernotification : UIButton = {
-        let btn = UIButton()
-        btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.setTitle("Register Notificationn", for: .normal)
-        btn.backgroundColor = .brown
-        btn.setTitleColor(.white, for: .normal)
-        btn.layer.cornerRadius = 10
-        btn.addTarget(self, action: #selector(checkSettings), for: .touchUpInside)
-        return btn
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Title"
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
-    var notificationId = UUID().uuidString
-    
-    var notificationTitle : String {
-        return titlefield.text
-    }
-    
-    var notificationbodyy : String {
-        return descriptionfield.text
-    }
-    
-    
-    var selectedDate : Date?
-    
-    var selectDateLbl : UILabel = {
-        let lable = UILabel()
-        lable.text = "Set Notification Date And Time"
-        lable.font = .systemFont(ofSize: 19, weight: .medium)
-        lable.translatesAutoresizingMaskIntoConstraints = false
-        lable.textAlignment = .center
-        return lable
+    private let titleTextView: UITextView = {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.textAlignment = .left
+        textView.layer.cornerRadius = 10
+        textView.layer.borderWidth = 1
+        textView.layer.borderColor = UIColor.systemGray4.cgColor
+        textView.textColor = .label
+        textView.backgroundColor = .secondarySystemBackground
+        textView.font = .systemFont(ofSize: 16)
+        textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        return textView
     }()
     
-    var datePicker : UIDatePicker = {
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Description"
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let descriptionTextView: UITextView = {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.textAlignment = .left
+        textView.layer.cornerRadius = 10
+        textView.layer.borderWidth = 1
+        textView.layer.borderColor = UIColor.systemGray4.cgColor
+        textView.textColor = .label
+        textView.backgroundColor = .secondarySystemBackground
+        textView.font = .systemFont(ofSize: 16)
+        textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        return textView
+    }()
+    
+    private let dateTimeLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Set Notification"
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .left
+        return label
+    }()
+    
+    private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.datePickerMode = .dateAndTime
         picker.preferredDatePickerStyle = .compact
+        picker.minimumDate = Date()
         picker.translatesAutoresizingMaskIntoConstraints = false
-        picker.addTarget(self, action: #selector(didValueChange(sender:)), for: .allEditingEvents)
+        picker.addTarget(self, action: #selector(datePickerValueChanged), for: .valueChanged)
         return picker
     }()
     
-   lazy var dateStack : UIStackView = {
-        let stackview = UIStackView(arrangedSubviews: [selectDateLbl,datePicker])
-        stackview.axis = .vertical
-        stackview.alignment = .center
-        stackview.distribution = .fill
-       stackview.spacing = 10
-        stackview.translatesAutoresizingMaskIntoConstraints = false
-        return stackview
+    private lazy var dateStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [dateTimeLabel, datePicker])
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalSpacing
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
-   
-
+    private lazy var registerButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Enable Notifications", for: .normal)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        button.layer.cornerRadius = 12
+        button.addTarget(self, action: #selector(registerButtonTapped), for: .touchUpInside)
+        return button
+    }()
     
-    
-    var shouldopenSettings : Bool = false
-    
-    var localManger = notificationManager.shared
-    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.constructHeader()
-        self.view.backgroundColor = .white
-        self.view.addSubview(containerView)
-        addToContainer(views: titleheader,descriptionheader,titlefield,descriptionfield,dateStack)
-        self.view.addSubview(registernotification)
-        viewconstrainnts()
-        checkThePremission()
-        NotificationCenter.default.addObserver(self, selector: #selector(checkThePremission), name: .notificationBackCheck, object: nil)
-        
-        let tapgesuture = UITapGestureRecognizer(target: view, action: #selector(UIView.endEditing))
-        view.addGestureRecognizer(tapgesuture)
-        
+        setupUI()
+        setupNavigationBar()
+        setupConstraints()
+        setupGestureRecognizers()
+        checkPermission()
+        setupNotificationObserver()
     }
     
-    @objc func didValueChange(sender : UIDatePicker) {
-        selectedDate = sender.date
-        
-       
-        
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
-     
-    
-    func viewconstrainnts() {
+    // MARK: - Setup Methods
+    private func setupUI() {
+        view.backgroundColor = .systemBackground
         
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(titleTextView)
+        contentView.addSubview(descriptionLabel)
+        contentView.addSubview(descriptionTextView)
+        contentView.addSubview(dateStackView)
+        
+        view.addSubview(registerButton)
+    }
+    
+    private func setupNavigationBar() {
+        let headerLabel = UILabel()
+        headerLabel.text = "Notification Center"
+        headerLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        headerLabel.textColor = .label
+        
+        let subHeaderLabel = UILabel()
+        subHeaderLabel.text = "By Saikumar"
+        subHeaderLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        subHeaderLabel.textColor = .secondaryLabel
+        
+        let headerStack = UIStackView(arrangedSubviews: [headerLabel, subHeaderLabel])
+        headerStack.axis = .vertical
+        headerStack.alignment = .leading
+        headerStack.spacing = 2
+        
+        let saveButton = UIBarButtonItem(
+            title: "Save",
+            style: .done,
+            target: self,
+            action: #selector(saveButtonTapped)
+        )
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: headerStack)
+        navigationItem.rightBarButtonItem = saveButton
+    }
+    
+    private func setupConstraints() {
         NSLayoutConstraint.activate([
-        
-            registernotification.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            registernotification.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            registernotification.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 30),
-            registernotification.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -30),
-            registernotification.heightAnchor.constraint(equalToConstant: 50),
+            // ScrollView
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
+            // Content View
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
+            // Title Label
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            // Title TextView
+            titleTextView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            titleTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            titleTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            titleTextView.heightAnchor.constraint(equalToConstant: 80),
             
+            // Description Label
+            descriptionLabel.topAnchor.constraint(equalTo: titleTextView.bottomAnchor, constant: 20),
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            self.containerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            self.containerView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            self.containerView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            self.containerView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            // Description TextView
+            descriptionTextView.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 10),
+            descriptionTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            descriptionTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            descriptionTextView.heightAnchor.constraint(equalToConstant: 120),
             
-        
-            titleheader.topAnchor.constraint(equalTo: self.containerView.topAnchor, constant: 40),
-            titleheader.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-            titleheader.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15),
+            // Date Stack
+            dateStackView.topAnchor.constraint(equalTo: descriptionTextView.bottomAnchor, constant: 20),
+            dateStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            dateStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            dateStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             
-            
-            titlefield.topAnchor.constraint(equalTo: self.titleheader.bottomAnchor, constant: 20),
-            titlefield.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-            titlefield.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15),
-            
-            titlefield.heightAnchor.constraint(greaterThanOrEqualToConstant: 50),
-            descriptionfield.heightAnchor.constraint(greaterThanOrEqualToConstant: 50),
-
-            
-            
-            descriptionheader.topAnchor.constraint(equalTo: self.titlefield.bottomAnchor, constant: 40),
-            descriptionheader.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-            descriptionheader.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15),
-            
-            
-            descriptionfield.topAnchor.constraint(equalTo: self.descriptionheader.bottomAnchor, constant: 20),
-            descriptionfield.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-            descriptionfield.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15),
-            
-            self.dateStack.topAnchor.constraint(equalTo: descriptionfield.bottomAnchor, constant: 30),
-            dateStack.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-            dateStack.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15),
-            
-//            self.datePicker.topAnchor.constraint(equalTo: selectDateLbl.bottomAnchor, constant: 10),
-//            datePicker.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor, constant: 15),
-//            datePicker.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor, constant: -15)
-        
+            // Register Button
+            registerButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            registerButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            registerButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            registerButton.heightAnchor.constraint(equalToConstant: 50)
         ])
-        
-       
-        
-        
     }
     
-    
-    func addToContainer(views : UIView...) {
-        views.forEach { view in
-            containerView.addSubview(view)
-        }
+    private func setupGestureRecognizers() {
+        let tapGesture = UITapGestureRecognizer(target: view, action: #selector(UIView.endEditing))
+        view.addGestureRecognizer(tapGesture)
     }
     
+    private func setupNotificationObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(checkPermission),
+            name: .notificationBackCheck,
+            object: nil
+        )
+    }
     
-    @objc func checkSettings() {
-        
-        guard !shouldopenSettings else {
-            if let url = URL(string: UIApplication.openSettingsURLString) {
-                if UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.open(url)
-                }
-                return
-            }
+    // MARK: - Actions
+    @objc private func datePickerValueChanged(_ sender: UIDatePicker) {
+        selectedDate = sender.date
+    }
+    
+    @objc private func registerButtonTapped() {
+        guard !shouldOpenSettings else {
+            openSettings()
             return
         }
-        localManger.requestNotificationPremission { premission, error in
-            if let e = error {
-                print(e.localizedDescription)
-            }else {
-                if premission {
-                    print("premission granted")
-                }else {
-                    print("premission rejected")
-                }
+        
+        notificationManager.requestNotificationPermission { [weak self] granted, error in
+            if let error = error {
+                print("Error requesting permission: \(error.localizedDescription)")
             }
-            
-            self.checkThePremission()
+            self?.checkPermission()
         }
-
     }
     
-  @objc  func checkThePremission() {
-        localManger.checkingPremissionStatus { status in
+    @objc private func saveButtonTapped() {
+        scheduleNotification()
+    }
+    
+    // MARK: - Permission Management
+    @objc private func checkPermission() {
+        notificationManager.checkPermissionStatus { [weak self] status in
             DispatchQueue.main.async {
-                switch status {
-                case .authorize :
-                    self.registernotification.isHidden = true
-                    self.containerView.isHidden = false
-                    self.shouldopenSettings = false
-                    break
-                case .denied :
-                    self.shouldopenSettings = true
-                    self.containerView.isHidden = true
-                    self.registernotification.isHidden = false
-                    break
-                case .notDetermined :
-                    self.registernotification.isHidden = false
-                    self.containerView.isHidden = true
-                default :
-                    self.registernotification.isHidden = false
-                    self.shouldopenSettings = true
-                    self.containerView.isHidden = true
+                self?.updateUI(for: status)
+            }
+        }
+    }
+    
+    private func updateUI(for status: NotificationAccessStatus) {
+        switch status {
+        case .authorized, .provisional:
+            scrollView.isHidden = false
+            registerButton.isHidden = true
+            shouldOpenSettings = false
+            navigationItem.rightBarButtonItem?.isEnabled = true
+            
+        case .denied:
+            scrollView.isHidden = true
+            registerButton.isHidden = false
+            registerButton.setTitle("Open Settings", for: .normal)
+            shouldOpenSettings = true
+            navigationItem.rightBarButtonItem?.isEnabled = false
+            
+        case .notDetermined:
+            scrollView.isHidden = true
+            registerButton.isHidden = false
+            registerButton.setTitle("Enable Notifications", for: .normal)
+            shouldOpenSettings = false
+            navigationItem.rightBarButtonItem?.isEnabled = false
+            
+        default:
+            scrollView.isHidden = true
+            registerButton.isHidden = false
+            shouldOpenSettings = true
+            navigationItem.rightBarButtonItem?.isEnabled = false
+        }
+    }
+    
+    private func openSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString),
+              UIApplication.shared.canOpenURL(settingsURL) else {
+            return
+        }
+        UIApplication.shared.open(settingsURL)
+    }
+    
+    // MARK: - Notification Scheduling
+    private func scheduleNotification() {
+        // Validate inputs
+        guard let title = titleTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !title.isEmpty else {
+            showAlert(title: "Missing Title", message: "Please enter a notification title.")
+            return
+        }
+        
+        guard let body = descriptionTextView.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !body.isEmpty else {
+            showAlert(title: "Missing Description", message: "Please enter a notification description.")
+            return
+        }
+        
+        let notificationDate = selectedDate ?? datePicker.date
+        
+        // Validate date is in future
+        guard notificationDate > Date() else {
+            showAlert(title: "Invalid Date", message: "Please select a future date and time.")
+            return
+        }
+        
+        // Format date for display
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        let formattedDate = dateFormatter.string(from: notificationDate)
+        
+        // Show confirmation alert
+        let alert = UIAlertController(
+            title: "Schedule Notification",
+            message: "You will receive a notification on \(formattedDate)",
+            preferredStyle: .alert
+        )
+        
+        let confirmAction = UIAlertAction(title: "Schedule", style: .default) { [weak self] _ in
+            self?.performScheduling(title: title, body: body, date: notificationDate)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
+        alert.addAction(confirmAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func performScheduling(title: String, body: String, date: Date) {
+        notificationManager.scheduleNotification(
+            id: notificationId,
+            title: title,
+            body: body,
+            date: date
+        ) { [weak self] error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self?.showAlert(
+                        title: "Scheduling Failed",
+                        message: error.localizedDescription
+                    )
+                } else {
+                    self?.showSuccessAndReset()
                 }
             }
         }
     }
     
-    func constructHeader() {
-
-        let headertitle = UILabel()
-        headertitle.text = "Notification Center"
-        headertitle.font = .systemFont(ofSize: 20, weight: .medium)
-        headertitle.textAlignment = .left
-        headertitle.textColor = .black
-        headertitle.translatesAutoresizingMaskIntoConstraints = false
+    private func showSuccessAndReset() {
+        let alert = UIAlertController(
+            title: "Success",
+            message: "Your notification has been scheduled successfully!",
+            preferredStyle: .alert
+        )
         
- 
-        let subheader =  UILabel()
-            subheader.text = "By Saikumar"
-            subheader.font = .systemFont(ofSize: 14, weight: .regular)
-           subheader.translatesAutoresizingMaskIntoConstraints = false
-            subheader.textColor = .black
-            subheader.textAlignment = .left
-
-        let mainStackView = UIStackView(arrangedSubviews: [headertitle,subheader])
-        mainStackView.axis = .vertical
-        mainStackView.distribution = .fillProportionally
-        mainStackView.alignment = .leading
-        mainStackView.spacing = 2
-        mainStackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let savebtn =  UIButton()
-        savebtn.translatesAutoresizingMaskIntoConstraints = false
-        savebtn.setTitle("Save", for: .normal)
-        savebtn.setTitleColor(.tintColor, for: .normal)
-        savebtn.addTarget(self, action: #selector(scheduleNotification), for: .touchUpInside)
-
-        let containerstack = UIStackView(arrangedSubviews: [mainStackView,savebtn])
-        containerstack.axis = .horizontal
-        containerstack.distribution = .fill
-        containerstack.alignment = .center
-        containerstack.translatesAutoresizingMaskIntoConstraints = false
-        let titleNav = UIView()
-        titleNav.translatesAutoresizingMaskIntoConstraints = false
-       
-        titleNav.addSubview(containerstack)
-        NSLayoutConstraint.activate([
-        
-            containerstack.topAnchor.constraint(equalTo: titleNav.topAnchor, constant: 0),
-            containerstack.bottomAnchor.constraint(equalTo: titleNav.bottomAnchor, constant: 0),
-            containerstack.leadingAnchor.constraint(equalTo: titleNav.leadingAnchor, constant: 0),
-            containerstack.trailingAnchor.constraint(equalTo: titleNav.trailingAnchor, constant: 0),
-            
-            titleNav.widthAnchor.constraint(equalToConstant: self.navigationController?.navigationBar.bounds.width ?? 0),
-            
-            titleNav.heightAnchor.constraint(equalToConstant: self.navigationController?.navigationBar.bounds.height ?? 0)
-        
-        ])
-        self.navigationItem.titleView = titleNav
-        
-    }
-    
-    
-    @objc func scheduleNotification() {
-        
-        let date = DateFormatter()
-        date.dateFormat = "yyyy-MM-dd"
-        let dateVal = date.string(from: selectedDate ?? Date())
-        
-        
-        let minuteDate = DateFormatter()
-        minuteDate.dateFormat = "hh:mm a"
-        let minute = minuteDate.string(from: selectedDate ?? Date())
-        
-        let alert = UIAlertController(title: "Reminder", message: "You will get notification on \(dateVal) at \(minute) ", preferredStyle: .alert)
-        
-        let yesaction = UIAlertAction(title: "Yes", style: .default) { _ in
-            self.schedule(notificationId: self.notificationId, notificationname: self.notificationTitle, notificationBody: self.notificationbodyy, notificationDate: self.selectedDate ?? Date())
+        let okAction = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.resetForm()
         }
         
-        alert.addAction(yesaction)
-        
-        self.present(alert, animated: true)
-        
+        alert.addAction(okAction)
+        present(alert, animated: true)
     }
     
-    
-    func schedule(notificationId : String,notificationname : String,notificationBody : String, notificationDate : Date) {
-        
-        localManger.scheduleNotification(notificationId: self.notificationId, notificationname: notificationname, notificationBody: notificationBody, notificationDate: notificationDate)
-        
-        
+    private func resetForm() {
+        titleTextView.text = ""
+        descriptionTextView.text = ""
+        datePicker.date = Date()
+        selectedDate = nil
+        notificationId = UUID().uuidString
+        view.endEditing(true)
     }
     
-    
-
-
+    // MARK: - Helper Methods
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
 }
-
-
-
-

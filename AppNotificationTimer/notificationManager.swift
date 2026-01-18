@@ -1,78 +1,105 @@
-
-
 import Foundation
 import UserNotifications
 
-
-enum notifictionAccessStatus {
-    case authorize
+enum NotificationAccessStatus {
+    case authorized
     case denied
     case notDetermined
-    case appclip
+    case provisional
+    case ephemeral
     case unknown
 }
 
-class notificationManager {
+class NotificationManager {
     
-    static let shared = notificationManager()
-    var notificationCenter = UNUserNotificationCenter.current()
+    static let shared = NotificationManager()
+    private let notificationCenter = UNUserNotificationCenter.current()
     
+    private init() {}
     
-    func requestNotificationPremission(completion : @escaping(Bool, Error?)-> Void) {
-        
-        notificationCenter.requestAuthorization(options: [.alert,.badge,.sound]) { premissionGranted, error in
-            
-            completion(premissionGranted,error)
+    // MARK: - Request Permission
+    func requestNotificationPermission(completion: @escaping (Bool, Error?) -> Void) {
+        notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            completion(granted, error)
         }
     }
     
-    func scheduleNotification(notificationId : String,notificationname : String,notificationBody : String, notificationDate : Date) {
-        let component : Set<Calendar.Component> = [.minute, .hour, .day, .month, .year]
-        let componentValue  =  Calendar.current.dateComponents(component, from: notificationDate)
+    // MARK: - Schedule Notification
+    func scheduleNotification(
+        id: String,
+        title: String,
+        body: String,
+        date: Date,
+        completion: @escaping (Error?) -> Void
+    ) {
+        // Validate date is in the future
+        guard date > Date() else {
+            let error = NSError(
+                domain: "NotificationManager",
+                code: 1001,
+                userInfo: [NSLocalizedDescriptionKey: "Notification date must be in the future"]
+            )
+            completion(error)
+            return
+        }
         
-        let trigger = UNCalendarNotificationTrigger(dateMatching: componentValue, repeats: false)
+        // Create date components
+        let components: Set<Calendar.Component> = [.minute, .hour, .day, .month, .year]
+        let dateComponents = Calendar.current.dateComponents(components, from: date)
         
+        // Create trigger
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         
-        schedulenotificationContennt(trigger: trigger, notificationId: notificationId, notificationname: notificationname, notificationBody: notificationBody)
+        // Create content
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.badge = 1
+        
+        // Create request
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+        
+        // Add notification
+        notificationCenter.add(request) { error in
+            completion(error)
+        }
     }
     
-    
-    func schedulenotificationContennt(trigger : UNNotificationTrigger,notificationId : String,notificationname : String,notificationBody : String) {
-        
-        let  notificationncontent = UNMutableNotificationContent()
-        notificationncontent.title = notificationname
-        notificationncontent.body = notificationBody
-        notificationncontent.sound = .default
-        
-        
-        let request = UNNotificationRequest(identifier: notificationId, content: notificationncontent, trigger: trigger)
-        notificationCenter.add(request)
-        
-    }
-    
-    
-    func checkingPremissionStatus(completionn : @escaping(notifictionAccessStatus)-> Void) {
+    // MARK: - Check Permission Status
+    func checkPermissionStatus(completion: @escaping (NotificationAccessStatus) -> Void) {
         notificationCenter.getNotificationSettings { settings in
             switch settings.authorizationStatus {
             case .notDetermined:
-                completionn(.notDetermined)
+                completion(.notDetermined)
             case .denied:
-                completionn(.denied)
+                completion(.denied)
             case .authorized:
-                completionn(.authorize)
-          
+                completion(.authorized)
             case .provisional:
-                completionn(.authorize)
+                completion(.provisional)
             case .ephemeral:
-                completionn(.appclip)
+                completion(.ephemeral)
             @unknown default:
-                completionn(.unknown)
+                completion(.unknown)
             }
-            
-            
         }
     }
     
+    // MARK: - Get Pending Notifications
+    func getPendingNotifications(completion: @escaping ([UNNotificationRequest]) -> Void) {
+        notificationCenter.getPendingNotificationRequests { requests in
+            completion(requests)
+        }
+    }
     
+    // MARK: - Cancel Notification
+    func cancelNotification(withId id: String) {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
+    }
     
+    // MARK: - Cancel All Notifications
+    func cancelAllNotifications() {
+        notificationCenter.removeAllPendingNotificationRequests()
+    }
 }
