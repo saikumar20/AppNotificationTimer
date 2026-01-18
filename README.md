@@ -2,7 +2,7 @@ A simple and elegant local notification scheduler built with Swift and UIKit. Th
 
 ## 📸 Demo :
 
-https://www.youtube.com/shorts/KMfGI1JcpbA
+https://youtube.com/shorts/-50MVhj92BA
 
 
 🛠 Features
